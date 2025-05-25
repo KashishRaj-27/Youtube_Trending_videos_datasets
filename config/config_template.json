@@ -1,0 +1,24 @@
+{
+  "jdbc_user": "*********",
+  "jdbc_password": "******",
+  "jdbc_host": "localhost",
+  "jdbc_port": "****",
+  "jdbc_dbname": "******",
+  "jdbc_table": "*******",
+  "spark_master": "local[*]",
+  "spark_driver_memory": "2g",
+  "spark_executor_memory": "2g",
+  "parquet_root_path": "C:/output", 
+  "datasets": [
+    {"input": "C:/JPvideos.csv", "output": "JPvideos", "country": "JP"},
+    {"input": "C:/CAvideos.csv", "output": "CAvideos", "country": "CA"},
+    {"input": "C:/DEvideos.csv", "output": "DEvideos", "country": "DE"},
+    {"input": "C:/FRvideos.csv", "output": "FRvideos", "country": "FR"},
+    {"input": "C:/GBvideos.csv", "output": "GBvideos", "country": "GB"},
+    {"input": "C:/INvideos.csv", "output": "INvideos", "country": "IN"},
+    {"input": "C:/KRvideos.csv", "output": "KRvideos", "country": "KR"},
+    {"input": "C:/MXvideos.csv", "output": "MXvideos", "country": "MX"},
+    {"input": "C:/RUvideos.csv", "output": "RUvideos", "country": "RU"},
+    {"input": "C:/USvideos.csv", "output": "USvideos", "country": "US"}
+  ]
+}
