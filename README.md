@@ -40,3 +40,81 @@ Ensure the following:
 ### 2. Set Up Your Config
 
 Example `config_template.json`
+
+📦 Output
+✅ Cleaned and validated data per country
+
+🔄 Existing records for the country are deleted before insert
+
+🧊 Saved as Parquet ({country}_cleaned.parquet)
+
+🛢️ Appended to PostgreSQL table: youtube_trending
+
+📌 Key Features
+Schema enforcement against defined PySpark StructType
+
+Data cleaning includes:
+
+Date parsing (trending + publish time)
+
+Dropping invalid or null critical records
+
+Removing duplicates (video_id + country)
+
+Joins with a category mapping
+
+Validates against PostgreSQL NOT NULL constraints
+
+Includes retry mechanism on failure
+
+📝 Logging
+Logs are saved to C:/path/youtube_data_cleaning_<timestamp>.log
+
+Logging levels: INFO, WARNING, ERROR
+
+📊 Power BI Visualization (Optional)
+After loading into PostgreSQL, you can:
+
+Import the youtube_trending table
+
+Build visualizations around:
+
+Views, Likes, Comments trends
+
+Country/category breakdowns
+
+Engagement metrics
+
+⚠️ .pbix file and raw CSVs are excluded due to file size
+
+🧪 Example Schema
+PostgreSQL Table: youtube_trending
+
+Column	Type
+video_id	TEXT
+trending_date	TIMESTAMP
+title	TEXT
+channel_title	TEXT
+category_id	INTEGER
+publish_time	TIMESTAMP
+tags	TEXT
+views	INTEGER
+likes	INTEGER
+dislikes	INTEGER
+comment_count	INTEGER
+thumbnail_link	TEXT
+comments_disabled	BOOLEAN
+ratings_disabled	BOOLEAN
+video_error_or_removed	BOOLEAN
+description	TEXT
+country	TEXT
+category	TEXT
+
+🛠️ To Do / Improvements
+ Add unit tests for schema validation
+
+ Improve retry logic with exponential backoff
+
+ Add CLI parameters instead of hardcoded paths
+
+ Dockerize for reproducibility
