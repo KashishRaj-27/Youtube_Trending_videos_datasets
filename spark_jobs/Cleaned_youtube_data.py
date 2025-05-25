@@ -68,14 +68,45 @@ CATEGORY_MAPPING = {
 }
 
 def load_config(path="C:/config_template.json"):
+    """
+    Load the JSON configuration file from the specified path.
+    
+    Args:
+        path (str): File path to the JSON config.
+    
+    Returns:
+        dict: Configuration data loaded from JSON.
+    """
     with open(path, "r") as file:
         return json.load(file)
 
 def create_category_df(spark):
+    """
+    Create a Spark DataFrame from the CATEGORY_MAPPING dictionary.
+    
+    Args:
+        spark (SparkSession): The active Spark session.
+    
+    Returns:
+        DataFrame: A Spark DataFrame with columns 'category_id' and 'category'.
+    """
     categories = [(k, v) for k, v in CATEGORY_MAPPING.items()]
     return spark.createDataFrame(categories, schema=["category_id", "category"])
 
 def validate_schema(df):
+    """
+    Validate the schema of a DataFrame against the expected CSV schema.
+    
+    Args:
+        df (DataFrame): Spark DataFrame to validate.
+    
+    Raises:
+        ValueError: If a required column is missing.
+        TypeError: If a column has an incorrect data type.
+    
+    Returns:
+        bool: True if schema matches expected format.
+    """
     expected_fields = {f.name: f.dataType for f in CSV_SCHEMA.fields}
     df_fields = {f.name: f.dataType for f in df.schema.fields}
     for col_name, col_type in expected_fields.items():
@@ -86,6 +117,19 @@ def validate_schema(df):
     return True
 
 def get_postgres_table_schema(config, table_name):
+    """
+    Retrieve the schema for a PostgreSQL table from the database.
+
+    Args:
+        config (dict): Configuration dictionary with DB connection details.
+        table_name (str): Name of the PostgreSQL table.
+    
+    Returns:
+        dict: Dictionary mapping column names to their data types and nullability.
+    
+    Raises:
+        Exception: If unable to connect to or query the database.
+    """
     logging.info(f"Fetching PostgreSQL schema for table: {table_name}")
     try:
         conn = psycopg2.connect(
@@ -122,6 +166,16 @@ def get_postgres_table_schema(config, table_name):
         raise
 
 def check_nulls_in_not_null_columns(df, postgres_schema):
+    """
+    Check if the DataFrame has nulls in PostgreSQL NOT NULL columns.
+
+    Args:
+        df (DataFrame): Spark DataFrame to check.
+        postgres_schema (dict): PostgreSQL table schema from `get_postgres_table_schema`.
+    
+    Returns:
+        list: List of tuples (column_name, null_count) for columns that violate NOT NULL.
+    """
     logging.info("Checking for nulls in NOT NULL PostgreSQL columns...")
     problematic_columns = []
 
@@ -141,6 +195,16 @@ def check_nulls_in_not_null_columns(df, postgres_schema):
     return problematic_columns
 
 def delete_existing_records(config, country):
+    """
+    Delete existing records for the given country in the PostgreSQL table.
+
+    Args:
+        config (dict): Configuration dictionary with DB connection details.
+        country (str): Country code whose records should be deleted.
+    
+    Raises:
+        Exception: If database deletion fails.
+    """
     try:
         conn = psycopg2.connect(
             dbname=config["jdbc_dbname"],
@@ -161,6 +225,23 @@ def delete_existing_records(config, country):
         raise
 
 def clean_and_save_dataset(input_path, jdbc_url, jdbc_table, jdbc_user, jdbc_password, config, country, spark, max_retries=1):
+    """
+    Clean, validate, transform, and save a dataset from CSV to Parquet and PostgreSQL.
+
+    Args:
+        input_path (str): File path to input CSV file.
+        jdbc_url (str): JDBC connection string for PostgreSQL.
+        jdbc_table (str): Target PostgreSQL table name.
+        jdbc_user (str): PostgreSQL username.
+        jdbc_password (str): PostgreSQL password.
+        config (dict): Loaded configuration dictionary.
+        country (str): Country code for this dataset.
+        spark (SparkSession): Active Spark session.
+        max_retries (int): Number of retry attempts if failure occurs.
+    
+    Raises:
+        Exception: If all retry attempts fail.
+    """
     attempt = 0
     parquet_path = os.path.join(config['parquet_root_path'], f"{country}_cleaned.parquet")
 
@@ -242,6 +323,13 @@ def clean_and_save_dataset(input_path, jdbc_url, jdbc_table, jdbc_user, jdbc_pas
                 time.sleep(wait_sec)
 
 def process_all_datasets(config, spark):
+    """
+    Process all datasets defined in the configuration sequentially.
+
+    Args:
+        config (dict): Configuration including dataset paths and DB details.
+        spark (SparkSession): Active Spark session.
+    """
     jdbc_url = f"jdbc:postgresql://{config['jdbc_host']}:{config['jdbc_port']}/{config['jdbc_dbname']}"
     for dataset in config["datasets"]:
         input_path = dataset["input"]
@@ -266,6 +354,9 @@ def process_all_datasets(config, spark):
         logging.info(f"Finished processing dataset for country {country}")
 
 def main():
+    """
+    Main entry point: Load config, create Spark session, and process all datasets.
+    """
     config = load_config()
     spark = SparkSession.builder \
         .appName("YouTube Data Cleaning") \
